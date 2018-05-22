@@ -20,7 +20,7 @@ import java.util.List;
 
 public class BlueToothManager {
 
-    private static Context mContext;
+    /*private static Context mContext;
     private static final int INTERVAL_TIME = 10000;
     private Handler mHandler = new Handler();
     private static BluetoothAdapter bluetoothAdapter;
@@ -43,9 +43,9 @@ public class BlueToothManager {
         devices = new LinkedList<>();
     }
 
-    /**
+    *//**
        打开蓝牙
-     */
+     *//*
     public boolean openBlueTooth(){
         if (!bluetoothAdapter.isEnabled()){
             return bluetoothAdapter.enable();
@@ -54,9 +54,9 @@ public class BlueToothManager {
         }
     }
 
-    /**
+    *//**
      * 关闭蓝牙
-     */
+     *//*
     public boolean closeBlueTooth(){
         if (bluetoothAdapter.isEnabled()){
             return bluetoothAdapter.disable();
@@ -65,9 +65,9 @@ public class BlueToothManager {
         }
     }
 
-    /***********
+    *//***********
      * 扫描设备
-     ********/
+     ********//*
     private void scanLeDevice(final boolean enable) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             if (enable) {
@@ -158,5 +158,5 @@ public class BlueToothManager {
 
             super.onDescriptorRead(gatt, descriptor, status);
         }
-    };
+    };*/
 }
