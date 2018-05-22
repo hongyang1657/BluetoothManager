@@ -9,16 +9,19 @@
     <Button
         android:id="@+id/bt_open"
         android:text="打开蓝牙"
+        android:onClick="click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <Button
         android:id="@+id/bt_close"
         android:text="关闭蓝牙"
+        android:onClick="click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <Button
-        android:id="@+id/bt_open"
-        android:text="打开蓝牙"
+        android:id="@+id/bt_search"
+        android:text="搜索"
+        android:onClick="click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
 </LinearLayout>

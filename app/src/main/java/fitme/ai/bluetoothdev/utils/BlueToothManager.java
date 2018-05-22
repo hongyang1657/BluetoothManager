@@ -2,10 +2,17 @@ package fitme.ai.bluetoothdev.utils;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.content.Context;
 import android.os.Build;
 import android.os.Handler;
 import android.text.TextUtils;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Created by hongy on 2018/3/19.
@@ -18,6 +25,8 @@ public class BlueToothManager {
     private Handler mHandler = new Handler();
     private static BluetoothAdapter bluetoothAdapter;
     private static BlueToothManager blueToothManager = null;
+    private BluetoothAdapter.LeScanCallback mLeScanCallback;
+    private List<BluetoothDevice> devices;
 
     private static class BlueToothHolder{
         private static BlueToothManager blueToothManager = new BlueToothManager();
@@ -30,7 +39,9 @@ public class BlueToothManager {
         return BlueToothHolder.blueToothManager;
     }
 
-    public BlueToothManager(){}
+    public BlueToothManager(){
+        devices = new LinkedList<>();
+    }
 
     /**
        打开蓝牙
@@ -85,22 +96,18 @@ public class BlueToothManager {
             mLeScanCallback = new BluetoothAdapter.LeScanCallback() {
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (device != null) {
-                                if (!TextUtils.isEmpty(device.getName())) {
-                                    // devices.add(device);
-                                    String name = device.getName();
-                                    if (name.contains(BluetoothDeviceAttr.OYGEN_DEVICE_NAME)) {
-                                        if (!devices.contains(device)) {
-                                            devices.add(device);
-                                        }
-                                    }
+
+                    if (device != null) {
+                        if (!TextUtils.isEmpty(device.getName())) {
+                            // devices.add(device);
+                            String name = device.getName();
+                            if (name.contains(BluetoothDeviceAttr.OYGEN_DEVICE_NAME)) {
+                                if (!devices.contains(device)) {
+                                    devices.add(device);
                                 }
                             }
                         }
-                    });
+                    }
                 }
             };
         } else {
@@ -108,4 +115,48 @@ public class BlueToothManager {
             return;
         }
     }
+
+    private boolean connectDevice(){
+        final BluetoothDevice device = bluetoothAdapter.getRemoteDevice(address);
+        if (device == null) {
+            L.i("Device not found.  Unable to connect.");
+            return false;
+        }
+        // We want to directly connect to the device, so we are setting the autoConnect
+        // parameter to false.
+        mBluetoothGatt = device.connectGatt(mContext, false, GattCallback);
+    }
+
+    public BluetoothGatt connectGatt(Context context, boolean autoConnect, BluetoothGattCallback callback) {
+        return (connectGatt(context, autoConnect,callback, TRANSPORT_AUTO));
+    }
+
+
+    private BluetoothGattCallback GattCallback = new BluetoothGattCallback() {
+        // 这里有9个要实现的方法，看情况要实现那些，用到那些就实现那些
+        //当连接状态发生改变的时候
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState){
+
+        }
+        //回调响应特征写操作的结果。
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status){
+
+        }
+        //回调响应特征读操作的结果。
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+        }
+        //当服务被发现的时候回调的结果
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+        }
+        //当连接能被被读的操作
+        @Override
+        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+
+            super.onDescriptorRead(gatt, descriptor, status);
+        }
+    };
 }
