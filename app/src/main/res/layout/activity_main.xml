@@ -20,8 +20,26 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <Button
-        android:id="@+id/bt_search"
-        android:text="搜索"
+        android:id="@+id/bt_search_on"
+        android:text="开始搜索"
+        android:onClick="click"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/bt_search_off"
+        android:text="结束搜索"
+        android:onClick="click"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/bt_open_service"
+        android:text="开启服务端"
+        android:onClick="click"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/bt_connect"
+        android:text="主动连接"
         android:onClick="click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
