@@ -43,4 +43,10 @@
         android:onClick="click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/bt_get_socket"
+        android:text="获取socket流"
+        android:onClick="click"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

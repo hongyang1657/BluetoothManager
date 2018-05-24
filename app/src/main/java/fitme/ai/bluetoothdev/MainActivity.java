@@ -58,6 +58,7 @@ public class MainActivity extends Activity {
                     BluetoothDevice bluetoothDevice1 = (BluetoothDevice) msg.obj;
                     L.i("--------主动连上的设备address--------:"+bluetoothDevice1.getAddress());
                     L.i("--------主动连上的设备getName--------:"+bluetoothDevice1.getName());
+                    recSocketMsg();
                     break;
             }
         }
@@ -68,6 +69,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         init();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        System.exit(0);
     }
 
     private void init(){
@@ -109,21 +116,24 @@ public class MainActivity extends Activity {
 
                 break;
             case R.id.bt_connect:
-                /*for (int i=0;i<newDevices.size();i++){
-                    if ("OnePlus 3T".equals(newDevices.get(i).getName())){
-                        L.i("发现QCY，开始连接");
+                for (int i=0;i<devices.size();i++){
+                    if ("OnePlus 3T".equals(devices.get(i).getName())){
+                        L.i("发现OnePlus 3T，开始连接");
                         final int finalI = i;
                         new Thread(){
                             @Override
                             public void run() {
                                 super.run();
-                                connect(newDevices.get(finalI));
+                                connect(devices.get(finalI),handler);
                             }
                         }.start();
 
                     }
-                }*/
-                getBltList();
+                }
+                //getBltList();
+                break;
+            case R.id.bt_get_socket:
+                recSocketMsg();
                 break;
             default:
                 break;
@@ -214,7 +224,7 @@ public class MainActivity extends Activity {
      * @param context
      * @return
      */
-    private BluetoothSocket socket;
+
     private boolean startSearthBltDevice(Context context) {
         //开始搜索设备，当搜索到一个设备的时候就应该将它添加到设备集合中，保存起来
         //checkBleDevice(context);
@@ -275,24 +285,24 @@ public class MainActivity extends Activity {
      * @param btDev 蓝牙设备对象
      * @return
      */
-    //private BluetoothSocket mBluetoothSocket;
+    private BluetoothSocket mBluetoothSocket;
     private void connect(BluetoothDevice btDev,Handler handler) {
         try {
             //通过和服务器协商的uuid来进行连接
-            socket = btDev.createRfcommSocketToServiceRecord(getMyUUID());
+            mBluetoothSocket = btDev.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
             //通过反射得到bltSocket对象，与uuid进行连接得到的结果一样，但这里不提倡用反射的方法
-            socket = (BluetoothSocket) btDev.getClass().getMethod("createRfcommSocket", new Class[]{int.class}).invoke(btDev, 1);
+            //mBluetoothSocket = (BluetoothSocket) btDev.getClass().getMethod("createRfcommSocket", new Class[]{int.class}).invoke(btDev, 1);
             //在建立之前调用
             if (bluetoothAdapter.isDiscovering()){
                 //停止搜索
                 bluetoothAdapter.cancelDiscovery();
             }
             //如果当前socket处于非连接状态则调用连接
-            if (!socket.isConnected()) {
+            if (!mBluetoothSocket.isConnected()) {
                 //你应当确保在调用connect()时设备没有执行搜索设备的操作。
                 // 如果搜索设备也在同时进行，那么将会显著地降低连接速率，并很大程度上会连接失败。
                 L.i("mBluetoothSocket开始连接");
-                socket.connect();
+                mBluetoothSocket.connect();
             }
             L.i("blueTooth"+ "已经链接");
 
@@ -301,28 +311,26 @@ public class MainActivity extends Activity {
             Method m = null;
             try {
                 m = btDev.getClass().getMethod("createRfcommSocket", new Class[] {int.class});
-                socket = (BluetoothSocket) m.invoke(btDev, 1);
-                socket.connect();
+                mBluetoothSocket = (BluetoothSocket) m.invoke(btDev, 1);
+                mBluetoothSocket.connect();
+                if (handler == null) return;
+                //结果回调
+                Message message = new Message();
+                message.what = 2;
+                message.obj = btDev;
+                handler.sendMessage(message);
+
             } catch (Exception e1) {
                 e1.printStackTrace();
                 try {
                     L.i("blueTooth"+"...链接又失败了"+e.toString());
-                    socket.close();
+                    mBluetoothSocket.close();
                 } catch (IOException e2) {
                     e2.printStackTrace();
                 }
             }
             e.printStackTrace();
         }
-
-        if (handler == null) return;
-        //结果回调
-        Message message = new Message();
-        message.what = 2;
-        message.obj = btDev;
-        handler.sendMessage(message);
-
-        //recSocketMsg();
 
 
     }
@@ -336,10 +344,11 @@ public class MainActivity extends Activity {
             @Override
             public void run() {
                 super.run();
-                while (!socket.isConnected() ) {
+                while (true) {
                     try {
-                        inputStream = socket.getInputStream();
-                        outputStream = socket.getOutputStream();
+                        inputStream = mBluetoothSocket.getInputStream();
+                        outputStream = mBluetoothSocket.getOutputStream();
+                        L.i("获取inputStream----------------"+getReadByte());
                         byte[] msgBytes = null;
                         int totalLength = 0;
                         L.i("getReadByte:"+getReadByte());
@@ -350,7 +359,12 @@ public class MainActivity extends Activity {
                             totalLength = PacketUtils.getInstance().getSocketBodyLength(msgBytes);
                             L.i("ssss"+ "=====content=====:" + (new String(msgBytes, "UTF-8")));
                         }
+                        sleep(5000);
                     } catch (IOException e) {
+                        L.i("socket获取流错误："+e.toString());
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        L.i("socket获取流错误-------："+e.toString());
                         e.printStackTrace();
                     }
                 }
@@ -414,7 +428,8 @@ public class MainActivity extends Activity {
         connect(btDev, handler);
     }
 
-
+    //建立蓝牙连接服务端
+    private BluetoothSocket socket;
     public void runOpenService(Handler handler){
         /**
          * 这个操作应该放在子线程中，因为存在线程阻塞的问题
@@ -422,7 +437,7 @@ public class MainActivity extends Activity {
         //服务器端的bltsocket需要传入uuid和一个独立存在的字符串，以便验证，通常使用包名的形式
         BluetoothServerSocket bluetoothServerSocket = null;
         try {
-            bluetoothServerSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("fitme.ai.bluetoothdev", getMyUUID());
+            bluetoothServerSocket = bluetoothAdapter.listenUsingRfcommWithServiceRecord("fitme.ai.bluetoothdev", UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"));
         } catch (IOException e) {
             e.printStackTrace();
             L.i("验证uuid"+e.toString());
@@ -432,10 +447,11 @@ public class MainActivity extends Activity {
                 //注意，当accept()返回BluetoothSocket时，socket已经连接了，因此不应该调用connect方法。
                 //这里会线程阻塞，直到有蓝牙设备链接进来才会往下走
                 L.i("等待连接蓝牙");
+
                 socket = bluetoothServerSocket.accept();
                 L.i("同意连接设备");
+                //recSocketMsg();
                 if (socket != null) {
-                    //BltAppliaction.bluetoothSocket = socket;
                     //回调结果通知
                     Message message = new Message();
                     message.what = 1;
@@ -446,6 +462,7 @@ public class MainActivity extends Activity {
 
                 }
             } catch (IOException e) {
+                L.i("返回socket失败"+e.toString());
                 try {
                     bluetoothServerSocket.close();
                 } catch (IOException e1) {
