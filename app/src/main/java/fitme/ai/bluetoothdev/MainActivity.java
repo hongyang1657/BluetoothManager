@@ -117,7 +117,7 @@ public class MainActivity extends Activity {
                 break;
             case R.id.bt_connect:
                 for (int i=0;i<devices.size();i++){
-                    if ("OnePlus 3T".equals(devices.get(i).getName())){
+                    if ("QCY-Q26".equals(devices.get(i).getName())){
                         L.i("发现OnePlus 3T，开始连接");
                         final int finalI = i;
                         new Thread(){
@@ -130,7 +130,9 @@ public class MainActivity extends Activity {
 
                     }
                 }
-                //getBltList();
+                break;
+            case R.id.bt_connect_old_device:
+                getBltList();
                 break;
             case R.id.bt_get_socket:
                 recSocketMsg();
@@ -303,6 +305,12 @@ public class MainActivity extends Activity {
                 // 如果搜索设备也在同时进行，那么将会显著地降低连接速率，并很大程度上会连接失败。
                 L.i("mBluetoothSocket开始连接");
                 mBluetoothSocket.connect();
+                if (handler == null) return;
+                //结果回调
+                Message message = new Message();
+                message.what = 2;
+                message.obj = btDev;
+                handler.sendMessage(message);
             }
             L.i("blueTooth"+ "已经链接");
 
@@ -338,7 +346,7 @@ public class MainActivity extends Activity {
     //接收socket数据
     private InputStream inputStream = null;
     private OutputStream outputStream = null;
-    private byte[] sizeByte = new byte[64];
+    private byte[] sizeByte = new byte[8];
     private void recSocketMsg(){
         new Thread(){
             @Override
@@ -348,7 +356,7 @@ public class MainActivity extends Activity {
                     try {
                         inputStream = mBluetoothSocket.getInputStream();
                         outputStream = mBluetoothSocket.getOutputStream();
-                        L.i("获取inputStream----------------"+getReadByte());
+                        L.i("获取inputStream----------------"+inputStream.toString());
                         byte[] msgBytes = null;
                         int totalLength = 0;
                         L.i("getReadByte:"+getReadByte());
@@ -379,6 +387,7 @@ public class MainActivity extends Activity {
             readlenlength = inputStream.read(sizeByte);
         } catch (IOException e) {
             e.printStackTrace();
+            L.i("inputStream读取错误"+e.toString());
         }
         return readlenlength;
     }

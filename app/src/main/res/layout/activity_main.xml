@@ -39,7 +39,13 @@
         android:layout_height="wrap_content" />
     <Button
         android:id="@+id/bt_connect"
-        android:text="主动连接"
+        android:text="主动连接新设备"
+        android:onClick="click"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <Button
+        android:id="@+id/bt_connect_old_device"
+        android:text="连接已配对设备"
         android:onClick="click"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
